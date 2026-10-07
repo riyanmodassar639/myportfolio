@@ -5,7 +5,9 @@ header("Content-Type: application/json");
 
 include("../config/db.php");
 
-$sql = "SELECT * FROM projects WHERE is_live=1 ORDER BY is_featured DESC, id DESC";
+$sql = "SELECT p.*, 
+       (SELECT image FROM project_screenshots WHERE project_id = p.id AND is_thumbnail = 1 LIMIT 1) as thumb_image 
+        FROM projects p WHERE p.is_live=1 ORDER BY p.is_featured DESC, p.id DESC";
 
 $result = mysqli_query($conn, $sql);
 
@@ -20,8 +22,10 @@ $projects = [];
 
 while ($row = mysqli_fetch_assoc($result)) {
 
-    if (!empty($row["image"])) {
-        $row["image"] = "https://riyanportfolio.site.je/server/" . $row["image"];
+    // If a specific thumbnail screenshot is set, use it. Otherwise, use the original main image.
+    $final_image = !empty($row["thumb_image"]) ? $row["thumb_image"] : $row["image"];
+    if (!empty($final_image)) {
+        $row["image"] = "https://riyanportfolio.site.je/server/" . $final_image;
     }
 
     if (!empty($row["documentation"])) {

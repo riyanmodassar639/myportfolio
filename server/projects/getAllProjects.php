@@ -7,15 +7,18 @@ include("../config/db.php");
 
 $query = mysqli_query(
     $conn,
-    "SELECT * FROM projects ORDER BY id DESC"
+    "SELECT p.*, 
+     (SELECT image FROM project_screenshots WHERE project_id = p.id AND is_thumbnail = 1 LIMIT 1) as thumb_image 
+     FROM projects p ORDER BY p.id DESC"
 );
 
 $projects = [];
 
 while ($row = mysqli_fetch_assoc($query)) {
 
-    if (!empty($row["image"])) {
-        $row["image"] = "https://riyanportfolio.site.je/server/" . $row["image"];
+    $final_image = !empty($row["thumb_image"]) ? $row["thumb_image"] : $row["image"];
+    if (!empty($final_image)) {
+        $row["image"] = "https://riyanportfolio.site.je/server/" . $final_image;
     }
 
     if (!empty($row["documentation"])) {
